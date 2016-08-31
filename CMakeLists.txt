@@ -21,24 +21,27 @@ if(SimpleITKPythonPackage_SUPERBUILD)
   set(SimpleITK_REPOSITORY git://github.com/jcfr/SimpleITK)
   set(SimpleITK_GIT_TAG "simpify-python-packaging") #v0.10.0)
 
-  set(EP_SOURCE_DIR ${CMAKE_BINARY_DIR}/SimpleITK)
-  set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/SimpleITK-build)
+  set(SimpleITK_SOURCE_DIR ${CMAKE_BINARY_DIR}/SimpleITK)
 
   # A separate project is used to download SimpleITK, so that the SuperBuild
   # subdirectory can be use for SimpleITK's SuperBuild to build the
   # required Lua, GTest etc.
   ExternalProject_add( SimpleITK-download
-    SOURCE_DIR ${EP_SOURCE_DIR}
+    SOURCE_DIR ${SimpleITK_SOURCE_DIR}
     GIT_REPOSITORY ${SimpleITK_REPOSITORY}
     GIT_TAG ${SimpleITK_GIT_TAG}
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
     INSTALL_COMMAND ""
     )
+
+  set(SimpleITK_SUPERBUILD_DIR ${CMAKE_BINARY_DIR}/SimpleITK-superbuild)
 
   # The actual SimpleITK Superbuild project that build all the tools
   # needed (GTest, PCRE, Swig, Lua & GTest) and then SimpleITK itself.
   ExternalProject_add(SimpleITK-superbuild
-    SOURCE_DIR ${EP_SOURCE_DIR}/SuperBuild
-    BINARY_DIR ${EP_BINARY_DIR}
+    SOURCE_DIR ${SimpleITK_SOURCE_DIR}/SuperBuild
+    BINARY_DIR ${SimpleITK_SUPERBUILD_DIR}
     DOWNLOAD_COMMAND ""
     UPDATE_COMMAND ""
     CMAKE_CACHE_ARGS
@@ -52,7 +55,7 @@ if(SimpleITKPythonPackage_SUPERBUILD)
       -DWRAP_LUA:BOOL=OFF
       -DWRAP_CSHARP:BOOL=OFF
       -DWRAP_R:BOOL=OFF
-      -DSimpleITK_INSTALL_DOC_DIR=SimpleITK
+      -DSimpleITK_INSTALL_DOC_DIR:STRING=SimpleITK
       -DSimpleITK_BUILD_STRIP:BOOL=ON
       -DSimpleITK_BUILD_DISTRIBUTE:BOOL=ON
     INSTALL_COMMAND ""
@@ -67,7 +70,7 @@ if(SimpleITKPythonPackage_SUPERBUILD)
     INSTALL_COMMAND ""
     CMAKE_CACHE_ARGS
       -DSimpleITKPythonPackage_SUPERBUILD:BOOL=0
-      -DSimpleITK_DIR:PATH=${EP_BINARY_DIR}/SimpleITK-build
+      -DSimpleITK_DIR:PATH=${SimpleITK_SUPERBUILD_DIR}/SimpleITK-build
       -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
     DEPENDS SimpleITK-superbuild
     )

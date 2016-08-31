@@ -1,4 +1,2 @@
-wheel==0.29.0
-setuptools==25.1.6
-skbuild
+scikit-build
 numpy
