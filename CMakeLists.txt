@@ -53,6 +53,7 @@ if(SimpleITKPythonPackage_SUPERBUILD)
       CONFIGURE_COMMAND ""
       BUILD_COMMAND ""
       BUILD_IN_SOURCE 1
+      BUILD_ALWAYS 1
       INSTALL_COMMAND ""
       ${depends_args}
       )
