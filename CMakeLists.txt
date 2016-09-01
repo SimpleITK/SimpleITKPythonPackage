@@ -9,6 +9,11 @@ endif()
 
 if(SimpleITKPythonPackage_SUPERBUILD)
 
+  #-----------------------------------------------------------------------------
+  # Options
+  option ( SimpleITK_PYTHON_THREADS "Enable threaded python usage by unlocking the GIL." ON )
+  mark_as_advanced( SimpleITK_PYTHON_THREADS )
+
   # compile with multiple processors
   include(ProcessorCount)
   ProcessorCount(NPROC)
@@ -16,17 +21,23 @@ if(SimpleITKPythonPackage_SUPERBUILD)
     set( ENV{MAKEFLAGS} "-j${NPROC}" )
   endif()
 
+
+  #-----------------------------------------------------------------------------
   include(ExternalProject)
 
   set(SimpleITK_REPOSITORY git://github.com/jcfr/SimpleITK)
   set(SimpleITK_GIT_TAG "simpify-python-packaging") #v0.10.0)
 
-  set(SimpleITK_SOURCE_DIR ${CMAKE_BINARY_DIR}/SimpleITK)
-
+  #-----------------------------------------------------------------------------
   # A separate project is used to download SimpleITK, so that the SuperBuild
   # subdirectory can be use for SimpleITK's SuperBuild to build the
   # required Lua, GTest etc.
-  ExternalProject_add( SimpleITK-download
+
+  message(STATUS "SuperBuild - SimpleITK-download")
+
+  set(SimpleITK_SOURCE_DIR ${CMAKE_BINARY_DIR}/SimpleITK)
+
+  ExternalProject_add(SimpleITK-download
     SOURCE_DIR ${SimpleITK_SOURCE_DIR}
     GIT_REPOSITORY ${SimpleITK_REPOSITORY}
     GIT_TAG ${SimpleITK_GIT_TAG}
@@ -35,10 +46,16 @@ if(SimpleITKPythonPackage_SUPERBUILD)
     INSTALL_COMMAND ""
     )
 
+
+  #-----------------------------------------------------------------------------
+  # SimpleITK "Core" libraries: This is the SimpleITK Superbuild project
+  # that build all the tools needed (GTest, PCRE, Swig, Lua & GTest) and
+  # then SimpleITK "core" libraries.
+
+  message(STATUS "SuperBuild - SimpleITK-superbuild => Requires SimpleITK-download")
+
   set(SimpleITK_SUPERBUILD_DIR ${CMAKE_BINARY_DIR}/SimpleITK-superbuild)
 
-  # The actual SimpleITK Superbuild project that build all the tools
-  # needed (GTest, PCRE, Swig, Lua & GTest) and then SimpleITK itself.
   ExternalProject_add(SimpleITK-superbuild
     SOURCE_DIR ${SimpleITK_SOURCE_DIR}/SuperBuild
     BINARY_DIR ${SimpleITK_SUPERBUILD_DIR}
@@ -48,7 +65,7 @@ if(SimpleITKPythonPackage_SUPERBUILD)
       -DBUILD_EXAMPLES:BOOL=OFF
       -DBUILD_TESTING:BOOL=OFF
       -DBUILD_DOXYGEN:BOOL=OFF
-      -DWRAP_PYTHON:BOOL=ON
+      -DWRAP_PYTHON:BOOL=OFF
       -DWRAP_TCL:BOOL=OFF
       -DWRAP_JAVA:BOOL=OFF
       -DWRAP_RUBY:BOOL=OFF
@@ -62,27 +79,82 @@ if(SimpleITKPythonPackage_SUPERBUILD)
     DEPENDS SimpleITK-download
     )
 
+  set(SimpleITK_DIR ${SimpleITK_SUPERBUILD_DIR}/SimpleITK-build)
+  message(STATUS "SuperBuild -   SimpleITK_DIR: ${SimpleITK_DIR}")
+
+  if(WIN32)
+    set(SWIG_TARGET_VERSION "3.0.10")
+    set(SWIG_EXECUTABLE ${SimpleITK_SUPERBUILD_DIR}/swigwin-${SWIG_TARGET_VERSION}/swig.exe)
+  else()
+    set(SWIG_EXECUTABLE ${SimpleITK_SUPERBUILD_DIR}/Swig/bin/swig)
+  endif()
+  message(STATUS "SuperBuild -   SWIG_EXECUTABLE: ${SWIG_EXECUTABLE}")
+
+
+  #-----------------------------------------------------------------------------
+  # SimpleITK Python module: This project build only the SimpleITK python
+  # module.
+
+  message(STATUS "SuperBuild - SimpleITK-python => Requires SimpleITK-superbuild")
+
+  set(SimpleITK_PYTHON_DIR "${CMAKE_BINARY_DIR}/SimpleITK-python")
+
+  ExternalProject_add(SimpleITK-python
+    SOURCE_DIR ${SimpleITK_SOURCE_DIR}/Wrapping/Python
+    BINARY_DIR ${SimpleITK_PYTHON_DIR}
+    DOWNLOAD_COMMAND ""
+    UPDATE_COMMAND ""
+    CMAKE_CACHE_ARGS
+      -DSimpleITK_PYTHON_THREADS:BOOL=ON
+      -DSimpleITK_DIR:PATH=${SimpleITK_DIR}
+      -DSWIG_EXECUTABLE:PATH=${SWIG_EXECUTABLE}
+    INSTALL_COMMAND ""
+    DEPENDS SimpleITK-superbuild
+    )
+
+  message(STATUS "SuperBuild -   SimpleITK_PYTHON_DIR: ${SimpleITK_PYTHON_DIR}")
+
+
+  #-----------------------------------------------------------------------------
+  # SimpleITKPythonPackage: This project adds install rules for the "Runtime" component
+  # of both SimpleITK code and python libraries.
+
+  message(STATUS "SuperBuild - ${PROJECT_NAME} => Requires SimpleITK-python")
+
   ExternalProject_add(${PROJECT_NAME}
     SOURCE_DIR ${CMAKE_SOURCE_DIR}
     BINARY_DIR ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-build
     DOWNLOAD_COMMAND ""
     UPDATE_COMMAND ""
-    INSTALL_COMMAND ""
     CMAKE_CACHE_ARGS
       -DSimpleITKPythonPackage_SUPERBUILD:BOOL=0
-      -DSimpleITK_DIR:PATH=${SimpleITK_SUPERBUILD_DIR}/SimpleITK-build
+      -DSimpleITK_DIR:PATH=${SimpleITK_DIR}
+      -DSimpleITK_PYTHON_DIR:PATH=${SimpleITK_PYTHON_DIR}
       -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
-    DEPENDS SimpleITK-superbuild
+    INSTALL_COMMAND ""
+    DEPENDS SimpleITK-python
     )
 
   install(SCRIPT ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-build/cmake_install.cmake)
 
 else()
 
-  # Install SimpleITK "Runtime" components
-  install(CODE "unset(CMAKE_INSTALL_COMPONENT)")
-  install(CODE "set(COMPONENT \"Runtime\")")
-  install(CODE "include\(\"${SimpleITK_DIR}/cmake_install.cmake\")")
+  #-----------------------------------------------------------------------------
+  # Install SimpleITK Core "Runtime" components
+  install(CODE "
+unset(CMAKE_INSTALL_COMPONENT)
+set(COMPONENT \"Runtime\")
+include\(\"${SimpleITK_DIR}/cmake_install.cmake\")
+unset(CMAKE_INSTALL_COMPONENT)
+")
+
+  # Install SimpleITK Python "Runtime" components
+  install(CODE "
+unset(CMAKE_INSTALL_COMPONENT)
+set(COMPONENT \"Runtime\")
+include\(\"${SimpleITK_PYTHON_DIR}/cmake_install.cmake\")
+unset(CMAKE_INSTALL_COMPONENT)
+")
 
 endif()
 
