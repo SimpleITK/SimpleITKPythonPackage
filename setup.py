@@ -23,6 +23,5 @@ setup(
     keywords='ITK InsightToolkit segmentation registration image',
     url=r'http://simpleitk.org/',
     install_requires=[
-        'numpy'
     ]
     )
