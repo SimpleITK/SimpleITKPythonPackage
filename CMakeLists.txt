@@ -26,6 +26,9 @@ if(SimpleITKPythonPackage_SUPERBUILD)
   #  SimpleITK_DIR: Path to an existing SimpleITK build or install directory
   #
 
+  option ( SimpleITKPythonPackage_BUILD_PYTHON "Build SimpleITK python module" ON )
+  mark_as_advanced( SimpleITKPythonPackage_BUILD_PYTHON )
+
   # compile with multiple processors
   include(ProcessorCount)
   ProcessorCount(NPROC)
@@ -58,6 +61,7 @@ if(SimpleITKPythonPackage_SUPERBUILD)
       ${depends_args}
       )
   endfunction()
+
 
   #-----------------------------------------------------------------------------
   # A separate project is used to download SimpleITK, so that the SuperBuild
@@ -155,6 +159,12 @@ if(SimpleITKPythonPackage_SUPERBUILD)
 
   message(STATUS "SuperBuild -   SimpleITK_DIR: ${SimpleITK_DIR}")
   message(STATUS "SuperBuild -   SWIG_EXECUTABLE: ${SWIG_EXECUTABLE}")
+
+
+  #-----------------------------------------------------------------------------
+  if(NOT SimpleITKPythonPackage_BUILD_PYTHON)
+    return()
+  endif()
 
 
   #-----------------------------------------------------------------------------
