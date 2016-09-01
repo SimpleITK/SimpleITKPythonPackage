@@ -14,6 +14,18 @@ if(SimpleITKPythonPackage_SUPERBUILD)
   option ( SimpleITK_PYTHON_THREADS "Enable threaded python usage by unlocking the GIL." ON )
   mark_as_advanced( SimpleITK_PYTHON_THREADS )
 
+  #
+  # When building different "flavor" of SimpleITK python packages on a given platform,
+  # explicitly setting the following options allow to speed up package generation by
+  # re-using existing resources.
+  #
+  #  SimpleITK_SOURCE_DIR: Path to an existing source directory
+  #
+  #  SWIG_EXECUTABLE: Path to an existing executable
+  #
+  #  SimpleITK_DIR: Path to an existing SimpleITK build or install directory
+  #
+
   # compile with multiple processors
   include(ProcessorCount)
   ProcessorCount(NPROC)
@@ -28,6 +40,24 @@ if(SimpleITKPythonPackage_SUPERBUILD)
   set(SimpleITK_REPOSITORY git://github.com/jcfr/SimpleITK)
   set(SimpleITK_GIT_TAG "simpify-python-packaging") #v0.10.0)
 
+  # Add an empty external project
+  function(sitk_ExternalProject_Add_Empty proj depends)
+    set(depends_args)
+    if(NOT depends STREQUAL "")
+      set(depends_args DEPENDS ${depends})
+    endif()
+    ExternalProject_add(${proj}
+      SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
+      DOWNLOAD_COMMAND ""
+      UPDATE_COMMAND ""
+      CONFIGURE_COMMAND ""
+      BUILD_COMMAND ""
+      BUILD_IN_SOURCE 1
+      INSTALL_COMMAND ""
+      ${depends_args}
+      )
+  endfunction()
+
   #-----------------------------------------------------------------------------
   # A separate project is used to download SimpleITK, so that the SuperBuild
   # subdirectory can be use for SimpleITK's SuperBuild to build the
@@ -35,17 +65,34 @@ if(SimpleITKPythonPackage_SUPERBUILD)
 
   message(STATUS "SuperBuild - SimpleITK-download")
 
-  set(SimpleITK_SOURCE_DIR ${CMAKE_BINARY_DIR}/SimpleITK)
+  # Sanity checks
+  if(DEFINED SimpleITK_SOURCE_DIR AND NOT EXISTS ${SimpleITK_SOURCE_DIR})
+    message(FATAL_ERROR "SimpleITK_SOURCE_DIR variable is defined but corresponds to nonexistent directory")
+  endif()
 
-  ExternalProject_add(SimpleITK-download
-    SOURCE_DIR ${SimpleITK_SOURCE_DIR}
-    GIT_REPOSITORY ${SimpleITK_REPOSITORY}
-    GIT_TAG ${SimpleITK_GIT_TAG}
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND ""
-    )
+  if(NOT DEFINED SimpleITK_SOURCE_DIR)
 
+    set(SimpleITK_SOURCE_DIR ${CMAKE_BINARY_DIR}/SimpleITK)
+
+    ExternalProject_add(SimpleITK-download
+      SOURCE_DIR ${SimpleITK_SOURCE_DIR}
+      GIT_REPOSITORY ${SimpleITK_REPOSITORY}
+      GIT_TAG ${SimpleITK_GIT_TAG}
+      CONFIGURE_COMMAND ""
+      BUILD_COMMAND ""
+      INSTALL_COMMAND ""
+      )
+
+  else()
+
+    sitk_ExternalProject_Add_Empty(
+      SimpleITK-download
+      ""
+      )
+
+  endif()
+
+  message(STATUS "SuperBuild -   SimpleITK_SOURCE_DIR: ${SimpleITK_SOURCE_DIR}")
 
   #-----------------------------------------------------------------------------
   # SimpleITK "Core" libraries: This is the SimpleITK Superbuild project
@@ -54,40 +101,58 @@ if(SimpleITKPythonPackage_SUPERBUILD)
 
   message(STATUS "SuperBuild - SimpleITK-superbuild => Requires SimpleITK-download")
 
-  set(SimpleITK_SUPERBUILD_DIR ${CMAKE_BINARY_DIR}/SimpleITK-superbuild)
-
-  ExternalProject_add(SimpleITK-superbuild
-    SOURCE_DIR ${SimpleITK_SOURCE_DIR}/SuperBuild
-    BINARY_DIR ${SimpleITK_SUPERBUILD_DIR}
-    DOWNLOAD_COMMAND ""
-    UPDATE_COMMAND ""
-    CMAKE_CACHE_ARGS
-      -DBUILD_EXAMPLES:BOOL=OFF
-      -DBUILD_TESTING:BOOL=OFF
-      -DBUILD_DOXYGEN:BOOL=OFF
-      -DWRAP_PYTHON:BOOL=OFF
-      -DWRAP_TCL:BOOL=OFF
-      -DWRAP_JAVA:BOOL=OFF
-      -DWRAP_RUBY:BOOL=OFF
-      -DWRAP_LUA:BOOL=OFF
-      -DWRAP_CSHARP:BOOL=OFF
-      -DWRAP_R:BOOL=OFF
-      -DSimpleITK_INSTALL_DOC_DIR:STRING=SimpleITK
-      -DSimpleITK_BUILD_STRIP:BOOL=ON
-      -DSimpleITK_BUILD_DISTRIBUTE:BOOL=ON
-    INSTALL_COMMAND ""
-    DEPENDS SimpleITK-download
-    )
-
-  set(SimpleITK_DIR ${SimpleITK_SUPERBUILD_DIR}/SimpleITK-build)
-  message(STATUS "SuperBuild -   SimpleITK_DIR: ${SimpleITK_DIR}")
-
-  if(WIN32)
-    set(SWIG_TARGET_VERSION "3.0.10")
-    set(SWIG_EXECUTABLE ${SimpleITK_SUPERBUILD_DIR}/swigwin-${SWIG_TARGET_VERSION}/swig.exe)
-  else()
-    set(SWIG_EXECUTABLE ${SimpleITK_SUPERBUILD_DIR}/Swig/bin/swig)
+  # Sanity checks
+  if(DEFINED SimpleITK_DIR AND NOT EXISTS ${SimpleITK_DIR})
+    message(FATAL_ERROR "SimpleITK_DIR variable is defined but corresponds to nonexistent directory")
   endif()
+  if(DEFINED SWIG_EXECUTABLE AND NOT EXISTS ${SWIG_EXECUTABLE})
+    message(FATAL_ERROR "SWIG_EXECUTABLE variable is defined but corresponds to nonexistent file")
+  endif()
+
+  if(NOT DEFINED SimpleITK_DIR AND NOT DEFINED SWIG_EXECUTABLE)
+
+    set(SimpleITK_SUPERBUILD_DIR ${CMAKE_BINARY_DIR}/SimpleITK-superbuild)
+
+    ExternalProject_add(SimpleITK-superbuild
+      SOURCE_DIR ${SimpleITK_SOURCE_DIR}/SuperBuild
+      BINARY_DIR ${SimpleITK_SUPERBUILD_DIR}
+      DOWNLOAD_COMMAND ""
+      UPDATE_COMMAND ""
+      CMAKE_CACHE_ARGS
+        -DBUILD_EXAMPLES:BOOL=OFF
+        -DBUILD_TESTING:BOOL=OFF
+        -DBUILD_DOXYGEN:BOOL=OFF
+        -DWRAP_PYTHON:BOOL=OFF
+        -DWRAP_TCL:BOOL=OFF
+        -DWRAP_JAVA:BOOL=OFF
+        -DWRAP_RUBY:BOOL=OFF
+        -DWRAP_LUA:BOOL=OFF
+        -DWRAP_CSHARP:BOOL=OFF
+        -DWRAP_R:BOOL=OFF
+        -DSimpleITK_INSTALL_DOC_DIR:STRING=SimpleITK
+        -DSimpleITK_BUILD_STRIP:BOOL=ON
+        -DSimpleITK_BUILD_DISTRIBUTE:BOOL=ON
+      INSTALL_COMMAND ""
+      DEPENDS SimpleITK-download
+      )
+
+    set(SimpleITK_DIR ${SimpleITK_SUPERBUILD_DIR}/SimpleITK-build)
+    if(WIN32)
+      set(SWIG_TARGET_VERSION "3.0.10")
+      set(SWIG_EXECUTABLE ${SimpleITK_SUPERBUILD_DIR}/swigwin-${SWIG_TARGET_VERSION}/swig.exe)
+    else()
+      set(SWIG_EXECUTABLE ${SimpleITK_SUPERBUILD_DIR}/Swig/bin/swig)
+    endif()
+  else()
+
+    sitk_ExternalProject_Add_Empty(
+      SimpleITK-superbuild
+      SimpleITK-download
+      )
+
+  endif()
+
+  message(STATUS "SuperBuild -   SimpleITK_DIR: ${SimpleITK_DIR}")
   message(STATUS "SuperBuild -   SWIG_EXECUTABLE: ${SWIG_EXECUTABLE}")
 
 
@@ -105,7 +170,7 @@ if(SimpleITKPythonPackage_SUPERBUILD)
     DOWNLOAD_COMMAND ""
     UPDATE_COMMAND ""
     CMAKE_CACHE_ARGS
-      -DSimpleITK_PYTHON_THREADS:BOOL=ON
+      -DSimpleITK_PYTHON_THREADS:BOOL=${SimpleITK_PYTHON_THREADS}
       -DSimpleITK_DIR:PATH=${SimpleITK_DIR}
       -DSWIG_EXECUTABLE:PATH=${SWIG_EXECUTABLE}
     INSTALL_COMMAND ""
