@@ -158,6 +158,36 @@ if(SimpleITKPythonPackage_SUPERBUILD)
 
 
   #-----------------------------------------------------------------------------
+  # Search for python interpreter and libraries
+
+  message(STATUS "SuperBuild - Searching for python")
+
+  # Sanity checks
+  if(DEFINED PYTHON_INCLUDE_DIR AND NOT EXISTS ${PYTHON_INCLUDE_DIR})
+    message(FATAL_ERROR "PYTHON_INCLUDE_DIR variable is defined but corresponds to nonexistent directory")
+  endif()
+  if(DEFINED PYTHON_LIBRARY AND NOT EXISTS ${PYTHON_LIBRARY})
+    message(FATAL_ERROR "PYTHON_LIBRARY variable is defined but corresponds to nonexistent file")
+  endif()
+  if(DEFINED PYTHON_EXECUTABLE AND NOT EXISTS ${PYTHON_EXECUTABLE})
+    message(FATAL_ERROR "PYTHON_EXECUTABLE variable is defined but corresponds to nonexistent file")
+  endif()
+
+  if(NOT DEFINED PYTHON_INCLUDE_DIR
+     OR NOT DEFINED PYTHON_LIBRARY
+     OR NOT DEFINED PYTHON_EXECUTABLE)
+
+    find_package ( PythonLibs REQUIRED )
+    find_package ( PythonInterp REQUIRED )
+
+  endif()
+
+  message(STATUS "SuperBuild -   PYTHON_INCLUDE_DIR: ${PYTHON_INCLUDE_DIR}")
+  message(STATUS "SuperBuild -   PYTHON_LIBRARY: ${PYTHON_LIBRARY}")
+  message(STATUS "SuperBuild -   PYTHON_EXECUTABLE: ${PYTHON_EXECUTABLE}")
+
+
+  #-----------------------------------------------------------------------------
   # SimpleITK Python module: This project build only the SimpleITK python
   # module.
 
@@ -171,6 +201,9 @@ if(SimpleITKPythonPackage_SUPERBUILD)
     DOWNLOAD_COMMAND ""
     UPDATE_COMMAND ""
     CMAKE_CACHE_ARGS
+      -DPYTHON_INCLUDE_DIR:PATH=${PYTHON_INCLUDE_DIR}
+      -DPYTHON_LIBRARY:PATH=${PYTHON_LIBRARY}
+      -DPYTHON_EXECUTABLE:PATH=${PYTHON_EXECUTABLE}
       -DSimpleITK_PYTHON_THREADS:BOOL=${SimpleITK_PYTHON_THREADS}
       -DSimpleITK_DIR:PATH=${SimpleITK_DIR}
       -DSWIG_EXECUTABLE:PATH=${SWIG_EXECUTABLE}
