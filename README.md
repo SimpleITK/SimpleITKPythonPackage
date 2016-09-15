@@ -18,6 +18,22 @@ pip install -r requirements.txt
 python setup.py bdist_wheel
 ```
 
+## Efficiently building wheels for different version of python
+
+If on a given platform you would like to build wheels for different version of python, you can build the SimpleITK core libraries first and reuse them when building each wheel.
+
+Here are the steps:
+
+1. Build `SimpleITKPythonPackage` with `SimpleITKPythonPackage_BUILD_PYTHON` set to `OFF`
+
+2. Build "flavor" of package using:
+
+```
+python setup.py bdist_wheel -- \
+  -DSimpleITK_DIR:PATH=/path/to/SimpleITKPythonPackage-core-build/SimpleITK-superbuild/SimpleITK-build \
+  -DSWIG_EXECUTABLE:PATH=/path/to/SimpleITKPythonPackage-core-build/SimpleITK-superbuild/Swig/bin/swig
+```
+
 ## Miscellaneous
 Written by Jean-Christophe Fillion-Robin from the Kitware Inc.
 
