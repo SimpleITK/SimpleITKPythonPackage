@@ -8,16 +8,45 @@ pushd /work/standalone-build > /dev/null 2>&1
   ninja
 popd > /dev/null 2>&1
 
+# Since the python interpreter exports its symbol (see [1]), SimpleITK python
+# modules should not link against any python libraries.
+# To ensure it is not the case, we configure the project using an empty
+# file as python library.
+#
+# [1] "Note that libpythonX.Y.so.1 is not on the list of libraries that
+# a manylinux1 extension is allowed to link to. Explicitly linking to
+# libpythonX.Y.so.1 is unnecessary in almost all cases: the way ELF linking
+# works, extension modules that are loaded into the interpreter automatically
+# get access to all of the interpreter's symbols, regardless of whether or
+# not the extension itself is explicitly linked against libpython. [...]"
+#
+# Source: https://www.python.org/dev/peps/pep-0513/#libpythonx-y-so-1
+PYTHON_LIBRARY=/work/scripts/manylinux-libpython-not-needed-symbols-exported-by-interpreter
+touch ${PYTHON_LIBRARY}
+
 # Compile wheels re-using standalone project and archive cache
 for PYBIN in /opt/python/*/bin; do
     if [[ ${PYBIN} == *"cp26"* ]]; then
         echo "Skipping ${PYBIN}"
         continue
     fi
+
+    PYTHON_EXECUTABLE=${PYBIN}/python
+    PYTHON_INCLUDE_DIR=$( find -L ${PYBIN}/../include/ -name Python.h -exec dirname {} \; )
+
+    echo ""
+    echo "PYTHON_EXECUTABLE:${PYTHON_EXECUTABLE}"
+    echo "PYTHON_INCLUDE_DIR:${PYTHON_INCLUDE_DIR}"
+    echo "PYTHON_LIBRARY:${PYTHON_LIBRARY}"
+
     ${PYBIN}/pip install --user -r /work/requirements-dev.txt
-    ${PYBIN}/python setup.py bdist_wheel -- \
+    ${PYBIN}/python setup.py bdist_wheel -G Ninja -- \
       -DSimpleITK_DIR:PATH=/work/standalone-build/SimpleITK-superbuild/SimpleITK-build \
-      -DSWIG_EXECUTABLE:PATH=/work/standalone-build/SimpleITK-superbuild/Swig/bin/swig
+      -DSimpleITK_SOURCE_DIR:PATH=/work/standalone-build/SimpleITK \
+      -DSWIG_EXECUTABLE:FILEPATH=/work/standalone-build/SimpleITK-superbuild/Swig/bin/swig \
+      -DPYTHON_EXECUTABLE:FILEPATH=${PYTHON_EXECUTABLE} \
+      -DPYTHON_INCLUDE_DIR:PATH=${PYTHON_INCLUDE_DIR} \
+      -DPYTHON_LIBRARY:FILEPATH=${PYTHON_LIBRARY}
     ${PYBIN}/python setup.py clean
 done
 

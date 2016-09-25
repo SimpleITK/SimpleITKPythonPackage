@@ -1,3 +1,9 @@
+# This project
+scripts/manylinux-libpython-not-needed-symbols-exported-by-interpreter
+skbuild
+standalone-build
+
+# Python
 *.py[cod]
 
 # C extensions
