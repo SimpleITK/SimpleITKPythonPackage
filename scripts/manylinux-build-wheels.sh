@@ -57,3 +57,12 @@ for whl in dist/*.whl; do
     rm $whl
 done
 
+# Install packages and test
+for PYBIN in /opt/python/*/bin/; do
+    if [[ ${PYBIN} == *"cp26"* ]]; then
+        echo "Skipping ${PYBIN}"
+        continue
+    fi
+    ${PYBIN}/pip install SimpleITK --user --no-cache-dir --no-index -f /work/dist
+    (cd $HOME; ${PYBIN}/python -c 'import SimpleITK as sitk; print(sitk.Version())')
+done
