@@ -1,9 +1,27 @@
 #!/bin/bash
 set -e -x
 
+# i686 or x86_64 ?
+case $(uname -p) in
+    i686)
+        arch=x86
+        break
+        ;;
+    x86_64)
+        arch=x64
+        break
+        ;;
+    *)
+        die "Unknown architecture $(uname -p)"
+        break
+        ;;
+esac
+
+echo "Building wheels for $arch"
+
 # Build standalone project and populate archive cache
-mkdir -p /work/standalone-build
-pushd /work/standalone-build > /dev/null 2>&1
+mkdir -p /work/standalone-${arch}-build
+pushd /work/standalone-${arch}-build > /dev/null 2>&1
   cmake -DSimpleITKPythonPackage_BUILD_PYTHON:PATH=0 -G Ninja ../
   ninja
 popd > /dev/null 2>&1
@@ -41,9 +59,9 @@ for PYBIN in /opt/python/*/bin; do
 
     ${PYBIN}/pip install --user -r /work/requirements-dev.txt
     ${PYBIN}/python setup.py bdist_wheel -G Ninja -- \
-      -DSimpleITK_DIR:PATH=/work/standalone-build/SimpleITK-superbuild/SimpleITK-build \
-      -DSimpleITK_SOURCE_DIR:PATH=/work/standalone-build/SimpleITK \
-      -DSWIG_EXECUTABLE:FILEPATH=/work/standalone-build/SimpleITK-superbuild/Swig/bin/swig \
+      -DSimpleITK_DIR:PATH=/work/standalone-${arch}-build/SimpleITK-superbuild/SimpleITK-build \
+      -DSimpleITK_SOURCE_DIR:PATH=/work/standalone-${arch}-build/SimpleITK \
+      -DSWIG_EXECUTABLE:FILEPATH=/work/standalone-${arch}-build/SimpleITK-superbuild/Swig/bin/swig \
       -DPYTHON_EXECUTABLE:FILEPATH=${PYTHON_EXECUTABLE} \
       -DPYTHON_INCLUDE_DIR:PATH=${PYTHON_INCLUDE_DIR} \
       -DPYTHON_LIBRARY:FILEPATH=${PYTHON_LIBRARY}

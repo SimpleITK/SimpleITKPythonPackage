@@ -2,6 +2,8 @@
 scripts/manylinux-libpython-not-needed-symbols-exported-by-interpreter
 skbuild
 standalone-build
+standalone-x86-build
+standalone-x64-build
 
 # Python
 *.py[cod]
