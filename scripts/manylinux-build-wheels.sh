@@ -5,15 +5,12 @@ set -e -x
 case $(uname -p) in
     i686)
         arch=x86
-        break
         ;;
     x86_64)
         arch=x64
-        break
         ;;
     *)
         die "Unknown architecture $(uname -p)"
-        break
         ;;
 esac
 
