@@ -40,7 +40,7 @@ if(SimpleITKPythonPackage_SUPERBUILD)
   include(ExternalProject)
 
   set(SimpleITK_REPOSITORY git://github.com/jcfr/SimpleITK)
-  set(SimpleITK_GIT_TAG "origin/simpify-python-packaging") #v0.10.0)
+  set(SimpleITK_GIT_TAG "origin/simplify-python-packaging-rebased") #v0.10.0)
 
   # Add an empty external project
   function(sitk_ExternalProject_Add_Empty proj depends)
