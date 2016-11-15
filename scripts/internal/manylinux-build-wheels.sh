@@ -54,7 +54,7 @@ for PYBIN in /opt/python/*/bin; do
     echo "PYTHON_INCLUDE_DIR:${PYTHON_INCLUDE_DIR}"
     echo "PYTHON_LIBRARY:${PYTHON_LIBRARY}"
 
-    ${PYBIN}/pip install --user -r /work/requirements-dev.txt
+    ${PYBIN}/pip install -r /work/requirements-dev.txt
     ${PYBIN}/python setup.py bdist_wheel -G Ninja -- \
       -DSimpleITK_DIR:PATH=/work/standalone-${arch}-build/SimpleITK-superbuild/SimpleITK-build \
       -DSimpleITK_SOURCE_DIR:PATH=/work/standalone-${arch}-build/SimpleITK \
