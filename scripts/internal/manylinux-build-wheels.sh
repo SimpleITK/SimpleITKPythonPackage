@@ -36,7 +36,7 @@ popd > /dev/null 2>&1
 # not the extension itself is explicitly linked against libpython. [...]"
 #
 # Source: https://www.python.org/dev/peps/pep-0513/#libpythonx-y-so-1
-PYTHON_LIBRARY=/work/scripts/manylinux-libpython-not-needed-symbols-exported-by-interpreter
+PYTHON_LIBRARY=/work/scripts/internal/manylinux-libpython-not-needed-symbols-exported-by-interpreter
 touch ${PYTHON_LIBRARY}
 
 # Compile wheels re-using standalone project and archive cache
