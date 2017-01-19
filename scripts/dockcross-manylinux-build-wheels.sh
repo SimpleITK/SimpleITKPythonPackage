@@ -12,6 +12,8 @@ script_dir="`cd $(dirname $0); pwd`"
 
 # Build wheels
 pushd $script_dir/..
-/tmp/dockcross-manylinux-x64 ./scripts/internal/manylinux-build-wheels.sh
-/tmp/dockcross-manylinux-x86 ./scripts/internal/manylinux-build-wheels.sh
+mkdir -p dist
+DOCKER_ARGS="-v $(pwd)/dist:/work/dist/"
+/tmp/dockcross-manylinux-x64 -a "$DOCKER_ARGS" ./scripts/internal/manylinux-build-wheels.sh
+/tmp/dockcross-manylinux-x86 -a "$DOCKER_ARGS" ./scripts/internal/manylinux-build-wheels.sh
 popd
