@@ -17,6 +17,10 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "MinSizeRel" "RelWithDebInfo")
 endif()
 
+if(NOT DEFINED SimpleITK_SOURCE_DIR)
+  set(SimpleITK_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/SimpleITK")
+endif()
+
 if(SimpleITKPythonPackage_SUPERBUILD)
 
   set(ep_common_cmake_cache_args)
@@ -56,9 +60,6 @@ if(SimpleITKPythonPackage_SUPERBUILD)
   #-----------------------------------------------------------------------------
   include(ExternalProject)
 
-  set(SimpleITK_REPOSITORY https://itk.org/SimpleITK.git)
-  set(SimpleITK_GIT_TAG "v1.0rc2")
-
   # Add an empty external project
   function(sitk_ExternalProject_Add_Empty proj depends)
     set(depends_args)
@@ -84,34 +85,9 @@ if(SimpleITKPythonPackage_SUPERBUILD)
   # subdirectory can be use for SimpleITK's SuperBuild to build the
   # required Lua, GTest etc.
 
-  message(STATUS "SuperBuild - SimpleITK-download")
-
   # Sanity checks
   if(DEFINED SimpleITK_SOURCE_DIR AND NOT EXISTS ${SimpleITK_SOURCE_DIR})
-    message(FATAL_ERROR "SimpleITK_SOURCE_DIR variable is defined but corresponds to nonexistent directory")
-  endif()
-
-  if(NOT DEFINED SimpleITK_SOURCE_DIR)
-
-    set(SimpleITK_SOURCE_DIR ${CMAKE_BINARY_DIR}/SimpleITK)
-
-    ExternalProject_add(SimpleITK-download
-      SOURCE_DIR ${SimpleITK_SOURCE_DIR}
-      GIT_REPOSITORY ${SimpleITK_REPOSITORY}
-      GIT_TAG ${SimpleITK_GIT_TAG}
-      USES_TERMINAL_DOWNLOAD 1
-      CONFIGURE_COMMAND ""
-      BUILD_COMMAND ""
-      INSTALL_COMMAND ""
-      )
-
-  else()
-
-    sitk_ExternalProject_Add_Empty(
-      SimpleITK-download
-      ""
-      )
-
+    message(FATAL_ERROR "SimpleITK_SOURCE_DIR variable is defined but corresponds to nonexistent directory: \"${SimpleITK_SOURCE_DIR}\"")
   endif()
 
   message(STATUS "SuperBuild -   SimpleITK_SOURCE_DIR: ${SimpleITK_SOURCE_DIR}")
@@ -121,7 +97,7 @@ if(SimpleITKPythonPackage_SUPERBUILD)
   # that build all the tools needed (GTest, PCRE, Swig, Lua & GTest) and
   # then SimpleITK "core" libraries.
 
-  message(STATUS "SuperBuild - SimpleITK-superbuild => Requires SimpleITK-download")
+  message(STATUS "SuperBuild - SimpleITK-superbuild")
 
   # Sanity checks
   if(DEFINED SimpleITK_DIR AND NOT EXISTS ${SimpleITK_DIR})
@@ -149,15 +125,12 @@ if(SimpleITKPythonPackage_SUPERBUILD)
         -DSimpleITK_INSTALL_DOC_DIR:STRING=SimpleITK
         -DSimpleITK_BUILD_STRIP:BOOL=ON
         -DSimpleITK_BUILD_DISTRIBUTE:BOOL=ON
-        -DSITK_GIT_PROTOCOL:STRING=git
+        -DSimpleITK_GIT_PROTOCOL:STRING=git
         -DSKBUILD:BOOL=${SKBUILD}
       USES_TERMINAL_CONFIGURE 1
       USES_TERMINAL_BUILD 1
       INSTALL_COMMAND ""
-      DEPENDS SimpleITK-download
       )
-
-    ExternalProject_Add_StepDependencies(SimpleITK-superbuild download SimpleITK-download)
 
     set(SimpleITK_DIR ${SimpleITK_SUPERBUILD_DIR}/SimpleITK-build)
     if(WIN32)
@@ -169,7 +142,6 @@ if(SimpleITKPythonPackage_SUPERBUILD)
 
     sitk_ExternalProject_Add_Empty(
       SimpleITK-superbuild
-      SimpleITK-download
       )
 
   endif()
@@ -188,6 +160,11 @@ if(SimpleITKPythonPackage_SUPERBUILD)
   # Search for python interpreter and libraries
 
   message(STATUS "SuperBuild - Searching for python")
+
+  if (PYTHON_VERSION_STRING)
+    # need to do something with the passed variable to silence unused
+    # CMake warning.
+  endif()
 
   # Sanity checks
   if(DEFINED PYTHON_INCLUDE_DIR AND NOT EXISTS ${PYTHON_INCLUDE_DIR})
@@ -244,8 +221,6 @@ if(SimpleITKPythonPackage_SUPERBUILD)
     )
 
   message(STATUS "SuperBuild -   SimpleITK_PYTHON_DIR: ${SimpleITK_PYTHON_DIR}")
-
-  ExternalProject_Add_StepDependencies(SimpleITK-python download SimpleITK-download)
 
 
   #-----------------------------------------------------------------------------
