@@ -145,6 +145,8 @@ if(SimpleITKPythonPackage_SUPERBUILD)
       DEPENDS SimpleITK-download
       )
 
+    ExternalProject_Add_StepDependencies(SimpleITK-superbuild download SimpleITK-download)
+
     set(SimpleITK_DIR ${SimpleITK_SUPERBUILD_DIR}/SimpleITK-build)
     if(WIN32)
       set(SWIG_TARGET_VERSION "3.0.10")
@@ -229,6 +231,8 @@ if(SimpleITKPythonPackage_SUPERBUILD)
     )
 
   message(STATUS "SuperBuild -   SimpleITK_PYTHON_DIR: ${SimpleITK_PYTHON_DIR}")
+
+  ExternalProject_Add_StepDependencies(SimpleITK-python download SimpleITK-download)
 
 
   #-----------------------------------------------------------------------------
