@@ -116,7 +116,7 @@ if(SimpleITKPythonPackage_SUPERBUILD)
 
   if(NOT DEFINED SimpleITK_DIR AND NOT DEFINED SWIG_EXECUTABLE)
 
-    set(SimpleITK_SUPERBUILD_DIR ${CMAKE_BINARY_DIR}/SimpleITK-superbuild)
+    set(SimpleITK_SUPERBUILD_DIR ${CMAKE_BINARY_DIR}/sitk-sb)
 
     ExternalProject_add(SimpleITK-superbuild
       SOURCE_DIR ${SimpleITK_SOURCE_DIR}/SuperBuild
