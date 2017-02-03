@@ -7,7 +7,24 @@ if(NOT DEFINED SimpleITKPythonPackage_SUPERBUILD)
   set(SimpleITKPythonPackage_SUPERBUILD 1)
 endif()
 
+# Set a default build type if none was specified
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to 'Release' as none was specified.")
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+  mark_as_advanced(CMAKE_BUILD_TYPE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
+    "MinSizeRel" "RelWithDebInfo")
+endif()
+
 if(SimpleITKPythonPackage_SUPERBUILD)
+
+  set(ep_common_cmake_cache_args)
+  if(NOT CMAKE_CONFIGURATION_TYPES)
+    list(APPEND ep_common_cmake_cache_args
+      -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+    )
+  endif()
 
   #-----------------------------------------------------------------------------
   # Options
@@ -124,6 +141,7 @@ if(SimpleITKPythonPackage_SUPERBUILD)
       DOWNLOAD_COMMAND ""
       UPDATE_COMMAND ""
       CMAKE_CACHE_ARGS
+        ${ep_common_cmake_cache_args}
         -DBUILD_EXAMPLES:BOOL=OFF
         -DBUILD_TESTING:BOOL=OFF
         -DBUILD_DOXYGEN:BOOL=OFF
@@ -211,6 +229,7 @@ if(SimpleITKPythonPackage_SUPERBUILD)
     DOWNLOAD_COMMAND ""
     UPDATE_COMMAND ""
     CMAKE_CACHE_ARGS
+      ${ep_common_cmake_cache_args}
       -DPYTHON_INCLUDE_DIR:PATH=${PYTHON_INCLUDE_DIR}
       -DPYTHON_LIBRARY:PATH=${PYTHON_LIBRARY}
       -DPYTHON_EXECUTABLE:PATH=${PYTHON_EXECUTABLE}
@@ -242,6 +261,7 @@ if(SimpleITKPythonPackage_SUPERBUILD)
     DOWNLOAD_COMMAND ""
     UPDATE_COMMAND ""
     CMAKE_CACHE_ARGS
+      ${ep_common_cmake_cache_args}
       -DSimpleITKPythonPackage_SUPERBUILD:BOOL=0
       -DSimpleITK_DIR:PATH=${SimpleITK_DIR}
       -DSimpleITK_PYTHON_DIR:PATH=${SimpleITK_PYTHON_DIR}
