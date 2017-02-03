@@ -23,7 +23,7 @@ pushd /work/standalone-${arch}-build > /dev/null 2>&1
   ninja
 popd > /dev/null 2>&1
 
-# Since the python interpreter exports its symbol (see [1]), SimpleITK python
+# Since the python interpreter exports its symbol (see [1]), python
 # modules should not link against any python libraries.
 # To ensure it is not the case, we configure the project using an empty
 # file as python library.
@@ -67,7 +67,7 @@ done
 
 # Since there are no external shared libraries to bundle into the wheels
 # this step will fixup the wheel switching from 'linux' to 'manylinux1' tag
-for whl in dist/*$(uname -p).whl; do
+for whl in dist/*linux_$(uname -p).whl; do
     auditwheel repair $whl -w /work/dist/
     rm $whl
 done
