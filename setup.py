@@ -2,7 +2,7 @@ from skbuild import setup
 
 setup(
     name='SimpleITK',
-    version='1.0rc1',
+    version='1.0rc2',
     author='Insight Software Consortium',
     author_email='insight-users@itk.org',
     packages=['SimpleITK'],

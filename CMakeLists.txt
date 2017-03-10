@@ -57,7 +57,7 @@ if(SimpleITKPythonPackage_SUPERBUILD)
   include(ExternalProject)
 
   set(SimpleITK_REPOSITORY https://itk.org/SimpleITK.git)
-  set(SimpleITK_GIT_TAG "v1.0rc1")
+  set(SimpleITK_GIT_TAG "v1.0rc2")
 
   # Add an empty external project
   function(sitk_ExternalProject_Add_Empty proj depends)
