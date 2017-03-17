@@ -1,0 +1,7 @@
+include CMakeLists.txt
+include README.md
+include setup.py
+include requirements.txt
+graft SimpleITK
+prune SimpleITK/.ExternalData
+prune _skbuild
