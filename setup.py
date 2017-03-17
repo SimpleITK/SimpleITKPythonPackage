@@ -1,4 +1,15 @@
-from skbuild import setup
+try:
+    from skbuild import setup
+except ImportError:
+    try:
+        from setuptools import setup
+    except ImportError:
+        print('setuptools or scikit-build is required to build from source.', file=sys.stderr)
+        print('Please run:\n', file=sys.stderr)
+        print('  python -m pip install setuptools')
+        sys.exit(1)
+
+
 
 setup(
     name='SimpleITK',
@@ -22,6 +33,6 @@ setup(
     license='Apache',
     keywords='ITK InsightToolkit segmentation registration image',
     url=r'http://simpleitk.org/',
-    install_requires=[
-    ]
+    install_requires=[],
+    setup_requires=['scikit-build>=0.5']
     )
