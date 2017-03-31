@@ -1,7 +1,7 @@
 include CMakeLists.txt
 include README.md
 include setup.py
-include requirements.txt
+include requirements-dev.txt
 graft SimpleITK
 prune SimpleITK/.ExternalData
-prune _skbuild
+global-exclude .git*
