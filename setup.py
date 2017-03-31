@@ -15,7 +15,7 @@ except ImportError:
 
 setup(
     name='SimpleITK',
-    version='1.0rc2',
+    version='1.0.0rc3',
     author='Insight Software Consortium',
     author_email='insight-users@itk.org',
     packages=['SimpleITK'],
