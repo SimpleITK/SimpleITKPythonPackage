@@ -46,5 +46,6 @@ setup(
     keywords='ITK InsightToolkit segmentation registration image',
     url=r'http://simpleitk.org/',
     install_requires=[],
-    setup_requires=['scikit-build>=0.5']
+    setup_requires=['scikit-build>=0.5'],
+    zip_safe=False
     )
