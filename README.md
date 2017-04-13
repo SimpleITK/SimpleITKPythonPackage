@@ -48,7 +48,7 @@ pip install git+https://github.com/SimpleITK/SimpleITKPythonPackage.git -v
 
 Alternatively, SimpleITK for Python can be compiled and installed from the SimpleITKPythonPackage python source distribution.
 
-``bash
+```bash
 pip install SimpleITKPythonPackage-1.0.0.tar.gz
 ```
 
