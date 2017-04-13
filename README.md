@@ -23,8 +23,8 @@ Building requires:
 * Git
 * C++ Compiler - Platform specific requirements are summarized in [scikit-build documentation](http://scikit-build.readthedocs.io).
 * Python
-** pip >= 9.0.0
-** setuptools >= 28.0.0
+  * pip >= 9.0.0
+  * setuptools >= 28.0.0
 
 Please ensure that `pip` and `setuptools` are up to date and are a recent version.
 
