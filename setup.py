@@ -3,14 +3,11 @@ from os import sys
 try:
     from skbuild import setup
 except ImportError:
-    try:
-        from setuptools import setup
-    except ImportError:
-        print('setuptools or scikit-build is required to build from source.', file=sys.stderr)
-        print('Please run:\n', file=sys.stderr)
-        print('  python -m pip install setuptools')
-        sys.exit(1)
-
+    print('scikit-build is required to build from source.', file=sys.stderr)
+    print('Please run:', file=sys.stderr)
+    print('', file=sys.stderr)
+    print('  python -m pip install scikit-build')
+    sys.exit(1)
 
 
 setup(
@@ -46,6 +43,5 @@ setup(
     keywords='ITK InsightToolkit segmentation registration image',
     url=r'http://simpleitk.org/',
     install_requires=[],
-    setup_requires=['scikit-build>=0.5'],
     zip_safe=False
     )
