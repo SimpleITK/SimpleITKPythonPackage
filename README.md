@@ -2,7 +2,7 @@
 
 This project provides a `setup.py` script that can build, install, and package SimpleITK for Python. [SimpleITK](http://www.simpleitk.org) is a simplified programming layer on top of the [Insight Segmentation and Registration Toolkit](https://itk.org) (ITK).  ITK is an open-source, cross-platform system that provides developers with an extensive suite of software tools for image analysis.
 
-SimpleITK is available for binary downloads from [PyPI](https://pypi.python.org/pypi/SimpleITK) for many common platforms. Also a source distribution available of this repository which may be used when an appropriate binary [wheel](http://pythonwheels.com) is not available.
+SimpleITK is available for binary downloads from [PyPI](https://pypi.python.org/pypi/SimpleITK) for many common platforms. Also a source distribution is available of this repository which may be used when an appropriate binary [wheel](http://pythonwheels.com) is not available.
 
 To install SimpleITK:
 
@@ -18,19 +18,19 @@ pip install SimpleITK
 
 ### Prerequisites
 
-Building requires:
+Building *requires*:
 * [CMake](https://cmake.org)
 * Git
 * C++ Compiler - Platform specific requirements are summarized in [scikit-build documentation](http://scikit-build.readthedocs.io).
 * Python
   * pip >= 9.0.0
-  * setuptools >= 28.0.0
+  * scikit-build >= 0.5.0
+  
+Please ensure that `pip` and `scikit-build` are up to date and are a recent version.
 
-Please ensure that `pip` and `setuptools` are up to date and are a recent version.
+*Optional*:
 
-There is also the implicit requirement of `scikit-build`, which will be automatically be temporarily installed with the recommended installation methods.
-
-The CMake and optional Ninja build tool can dependencies be provided through pip if needed:
+If CMake is not already available on you system it can be installed with pip. Additionally, the [Ninja](https://ninja-build.org) build tool is recommened for it's parallel build efficiency. These can be easily installed with:
 
 ```bash
 pip install cmake ninja
