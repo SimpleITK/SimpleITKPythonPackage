@@ -12,16 +12,16 @@ except ImportError:
 
 setup(
     name='SimpleITK',
-    version='1.0.1',
+    version='1.0.1+pythonpackage',
     author='Insight Software Consortium',
     author_email='insight-users@itk.org',
     packages=['SimpleITK'],
     package_dir={'SimpleITK':'SimpleITK'},
     download_url=r'https://www.itk.org/SimpleITKDoxygen/html/PyDownloadPage.html',
-    description=r'Simplified interface to the Insight Toolkit for image registration and segmentation',
-    long_description='Provide an abstraction layer to ITK that enables developers\
-    and users to access the powerful features of the InsightToolkit in a more \
-    simplified manner.',
+    description=r'SimpleITK is a simplified interface to the Insight Toolkit (ITK) for image registration and segmentation',
+    long_description =r'SimpleITK provides an abstraction layer to ITK that enables developers \
+                        and users to access the powerful features of the InsightToolkit in an easy \
+                        to use manner for biomedical image analysis.',
     classifiers=[
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python",
@@ -40,8 +40,8 @@ setup(
         "Operating System :: MacOS"
         ],
     license='Apache',
-    keywords='ITK InsightToolkit segmentation registration image',
-    url=r'http://simpleitk.org/',
+    keywords='SimpleITK ITK InsightToolkit segmentation registration',
+    url=r'https://simpleitk.org/',
     install_requires=[],
     zip_safe=False
     )
