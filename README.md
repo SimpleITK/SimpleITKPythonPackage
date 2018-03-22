@@ -87,14 +87,6 @@ SimpleITK-0.11.0-cp35-cp35m-manylinux1_i686.whl
 SimpleITK-0.11.0-cp35-cp35m-manylinux1_x86_64.whl
 ```
 
-### MacOSX
-
-*To be documented*
-
-### Windows
-
-*To be documented*
-
 ## Prerequisites
 
 Building wheels requires:
