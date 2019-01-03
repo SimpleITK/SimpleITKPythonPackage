@@ -133,6 +133,7 @@ if(SimpleITKPythonPackage_SUPERBUILD)
       )
 
     set(SimpleITK_DIR ${SimpleITK_SUPERBUILD_DIR}/SimpleITK-build)
+    set(ITK_DIR  ${SimpleITK_SUPERBUILD_DIR}/ITK-prefix/lib/cmake/ITK)
     if(WIN32)
       set(SWIG_EXECUTABLE ${SimpleITK_SUPERBUILD_DIR}/swigwin/swig.exe)
     else()
@@ -147,6 +148,7 @@ if(SimpleITKPythonPackage_SUPERBUILD)
   endif()
 
   message(STATUS "SuperBuild -   SimpleITK_DIR: ${SimpleITK_DIR}")
+  message(STATUS "SuperBuild -   ITK_DIR: ${ITK_DIR}")
   message(STATUS "SuperBuild -   SWIG_EXECUTABLE: ${SWIG_EXECUTABLE}")
 
 
@@ -212,6 +214,7 @@ if(SimpleITKPythonPackage_SUPERBUILD)
       -DBUILD_TESTING:BOOL=OFF
       -DSimpleITK_PYTHON_THREADS:BOOL=${SimpleITK_PYTHON_THREADS}
       -DSimpleITK_DIR:PATH=${SimpleITK_DIR}
+      -DITK_DIR:PATH=${ITK_DIR}
       -DSWIG_EXECUTABLE:PATH=${SWIG_EXECUTABLE}
       -DSimpleITK_BUILD_STRIP:BOOL=ON
       -DSKBUILD:BOOL=ON
