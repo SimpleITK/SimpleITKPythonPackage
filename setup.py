@@ -8,7 +8,7 @@ with open('SimpleITK/Readme.md', encoding='utf-8') as f:
 
 setup(
     name='SimpleITK',
-    version='2.1.1',
+    version='2.1.1.1',
     author='Insight Software Consortium',
     author_email='insight-users@itk.org',
     packages=['SimpleITK'],
