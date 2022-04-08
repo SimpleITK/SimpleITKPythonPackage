@@ -13,27 +13,23 @@ pip install SimpleITK
 ## Installing SimpleITK for Python from the Python Packaging Source
 
 ```bash
-pip install SimpleITK
+pip install --no-binary :all: SimpleITK
 ```
 
 ### Prerequisites
 
-Building *requires*:
-* [CMake](https://cmake.org)
+The build requirements are specified in the pyproject.toml file via [PEP 518](https://peps.python.org/pep-0518/). The requirements should be automatically downloaded when using a [PEP 517](https://peps.python.org/pep-0517/) compliant build front-end.
+
+Additionally building *requires*:
 * Git
 * C++ Compiler - Platform specific requirements are summarized in [scikit-build documentation](http://scikit-build.readthedocs.io).
 * Python
   * pip >= 9.0.0
-  * scikit-build >= 0.5.0
   
-Please ensure that `pip` and `scikit-build` are up to date and are a recent version.
-
-*Optional*:
-
-If CMake is not already available on you system it can be installed with pip. Additionally, the [Ninja](https://ninja-build.org) build tool is recommened for it's parallel build efficiency. These can be easily installed with:
+Please ensure that `pip` is up to date.
 
 ```bash
-pip install cmake ninja
+python -m pip install --upgrade pip
 ```
 
 ### Compilations and Installation from Github
@@ -52,7 +48,7 @@ Alternatively, SimpleITK for Python can be compiled and installed from the Simpl
 pip install SimpleITKPythonPackage-1.0.0.tar.gz
 ```
 
-The source distributions are available from [PyPI](https://pypi.python.org/pypi/SimpleITK) and [Source Forge](https://sourceforge.net/projects/simpleitk/files/SimpleITK/1.0.0/Python). They are labeled as `SimpleITKPythonPackages` in the Python sub-directory as opposed to just `SimpleITK` for the source archive of the general SimpleITK repository.
+The source distributions are available from [PyPI](https://pypi.python.org/pypi/SimpleITK).
 
 ## Automated wheels building with scripts
 
@@ -105,6 +101,13 @@ Build the SimpleITK Python wheel with the following command:
 mkvirtualenv build-sitk
 pip install -r requirements-dev.txt
 python setup.py bdist_wheel
+```
+### Building Source Distribution
+
+The Python [build](https://pypa-build.readthedocs.io/en/latest/) package should be used to build the source distribution:
+
+```
+python -m build --sdist
 ```
 
 ### Efficiently building wheels for different version of python
