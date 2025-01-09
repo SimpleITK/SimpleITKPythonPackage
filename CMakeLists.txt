@@ -1,5 +1,5 @@
 
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.26)
 
 project(SimpleITKPythonPackage NONE)
 
@@ -163,10 +163,13 @@ if(SimpleITKPythonPackage_SUPERBUILD)
 
   message(STATUS "SuperBuild - Searching for python")
 
-  if (PYTHON_VERSION_STRING)
-    # need to do something with the passed variable to silence unused
-    # CMake warning.
+  if ( PYTHON_VERSION_STRING VERSION_GREATER_EQUAL "3.11.0")
+
+    set(_SimpleITK_PYTHON_USE_LIMITED_API_DEFAULT ON)
+  else ()
+    set(_SimpleITK_PYTHON_USE_LIMITED_API_DEFAULT OFF)
   endif()
+  option( SimpleITK_PYTHON_USE_LIMITED_API "Use Python limited API, for minor version compatibility." ${_SimpleITK_PYTHON_USE_LIMITED_API_DEFAULT} )
 
   # Sanity checks
   if(DEFINED PYTHON_INCLUDE_DIR AND NOT EXISTS ${PYTHON_INCLUDE_DIR})
@@ -213,6 +216,7 @@ if(SimpleITKPythonPackage_SUPERBUILD)
       -DPython_EXECUTABLE:PATH=${PYTHON_EXECUTABLE}
       -DBUILD_TESTING:BOOL=OFF
       -DSimpleITK_PYTHON_THREADS:BOOL=${SimpleITK_PYTHON_THREADS}
+      -DSimpleITK_PYTHON_USE_LIMITED_API:BOOL=${SimpleITK_PYTHON_USE_LIMITED_API}
       -DSimpleITK_DIR:PATH=${SimpleITK_DIR}
       -DITK_DIR:PATH=${ITK_DIR}
       -DSWIG_EXECUTABLE:PATH=${SWIG_EXECUTABLE}
