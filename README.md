@@ -98,16 +98,14 @@ Building wheels requires:
 Build the SimpleITK Python wheel with the following command:
 
 ```
-mkvirtualenv build-sitk
-pip install -r requirements-dev.txt
-python setup.py bdist_wheel
+python -m build .
 ```
 ### Building Source Distribution
 
 The Python [build](https://pypa-build.readthedocs.io/en/latest/) package should be used to build the source distribution:
 
 ```
-python -m build --sdist
+python -m build --sdist .
 ```
 
 ### Efficiently building wheels for different version of python
