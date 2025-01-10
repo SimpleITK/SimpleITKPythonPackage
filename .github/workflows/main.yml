@@ -46,7 +46,7 @@ jobs:
     needs: package
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-13]
         python-version: ['3.8', '3.11']
     runs-on: ${{ matrix.os }}
     steps:
