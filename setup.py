@@ -8,12 +8,11 @@ with open('SimpleITK/Readme.md', encoding='utf-8') as f:
 
 setup(
     name='SimpleITK',
-    version='2.4.1',
+    version='2.5.0',
     author='Insight Software Consortium',
     author_email='insight-users@itk.org',
     packages=['SimpleITK'],
     package_dir={'SimpleITK':'SimpleITK'},
-    download_url=r'https://www.itk.org/SimpleITKDoxygen/html/PyDownloadPage.html',
     description=r'SimpleITK is a simplified interface to the Insight Toolkit (ITK) for image registration and segmentation',
     long_description = long_description,
     long_description_content_type='text/markdown',
