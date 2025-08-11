@@ -50,7 +50,7 @@ jobs:
         python-version: ['3.9', '3.13']
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/download-artifact@v4.3.0
+    - uses: actions/download-artifact@v5.0.0
       id: download
       with:
         name: python-packages
