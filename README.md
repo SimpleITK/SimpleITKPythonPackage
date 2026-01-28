@@ -1,30 +1,29 @@
 # SimpleITKPythonPackage
 
-This project provides a `setup.py` script that can build, install, and package SimpleITK for Python. [SimpleITK](http://www.simpleitk.org) is a simplified programming layer on top of the [Insight Segmentation and Registration Toolkit](https://itk.org) (ITK).  ITK is an open-source, cross-platform system that provides developers with an extensive suite of software tools for image analysis.
+This project provides a modern build system using [scikit-build-core](https://scikit-build-core.readthedocs.io/) to build, install, and package SimpleITK for Python. [SimpleITK](http://www.simpleitk.org) is a simplified programming layer on top of the [Insight Segmentation and Registration Toolkit](https://itk.org) (ITK). ITK is an open-source, cross-platform system that provides developers with an extensive suite of software tools for image analysis.
 
 SimpleITK is available for binary downloads from [PyPI](https://pypi.python.org/pypi/SimpleITK) for many common platforms. Also a source distribution is available of this repository which may be used when an appropriate binary [wheel](http://pythonwheels.com) is not available.
 
 To install SimpleITK:
 
 ```bash
-pip install SimpleITK
+python -m pip install SimpleITK
 ```
 
 ## Installing SimpleITK for Python from the Python Packaging Source
 
 ```bash
-pip install --no-binary :all: SimpleITK
+python -m pip install --no-binary SimpleITK SimpleITK
 ```
 
 ### Prerequisites
 
-The build requirements are specified in the pyproject.toml file via [PEP 518](https://peps.python.org/pep-0518/). The requirements should be automatically downloaded when using a [PEP 517](https://peps.python.org/pep-0517/) compliant build front-end.
+The build requirements are specified in the `pyproject.toml` file via [PEP 518](https://peps.python.org/pep-0518/). The requirements should be automatically downloaded when using a [PEP 517](https://peps.python.org/pep-0517/) compliant build front-end like `pip` or `build`.
 
 Additionally building *requires*:
 * Git
-* C++ Compiler - Platform specific requirements are summarized in [scikit-build documentation](http://scikit-build.readthedocs.io).
-* Python
-  * pip >= 9.0.0
+* C++ Compiler - Platform specific requirements are summarized in [scikit-build-core documentation](https://scikit-build-core.readthedocs.io/)
+* Python >= 3.10
   
 Please ensure that `pip` is up to date.
 
@@ -32,100 +31,114 @@ Please ensure that `pip` is up to date.
 python -m pip install --upgrade pip
 ```
 
-### Compilations and Installation from Github
-
-SimpleITK can be compiled and install directly from the github repository:
-
-```bash
-pip install git+https://github.com/SimpleITK/SimpleITKPythonPackage.git -v
-```
-
-### Compilation and Installation from Source Distribution
-
-Alternatively, SimpleITK for Python can be compiled and installed from the SimpleITKPythonPackage python source distribution.
-
-```bash
-pip install SimpleITKPythonPackage-1.0.0.tar.gz
-```
-
-The source distributions are available from [PyPI](https://pypi.python.org/pypi/SimpleITK).
-
-## Automated wheels building with scripts
-
-Steps required to build wheels on Linux, MacOSX and Windows have been automated. The
-following sections outline how to use the associated scripts.
-
-### Linux
-
-On any linux distribution with `docker` and `bash` installed, running the script
-`dockcross-manylinux-build-wheels.sh` will create 32 and 64-bit wheels for both
-python 2.x and python 3.x in the `dist` directory.
-
-For example:
-
-```bash
-$ git clone git://github.com/SimpleITK/SimpleITKPythonPackage.git
-[...]
-
-$ ./scripts/dockcross-manylinux-build-wheels.sh
-[...]
-
-$ ls -1 dist/
-SimpleITK-0.11.0-cp27-cp27m-manylinux1_i686.whl
-SimpleITK-0.11.0-cp27-cp27m-manylinux1_x86_64.whl
-SimpleITK-0.11.0-cp27-cp27mu-manylinux1_i686.whl
-SimpleITK-0.11.0-cp27-cp27mu-manylinux1_x86_64.whl
-SimpleITK-0.11.0-cp33-cp33m-manylinux1_i686.whl
-SimpleITK-0.11.0-cp33-cp33m-manylinux1_x86_64.whl
-SimpleITK-0.11.0-cp34-cp34m-manylinux1_i686.whl
-SimpleITK-0.11.0-cp34-cp34m-manylinux1_x86_64.whl
-SimpleITK-0.11.0-cp35-cp35m-manylinux1_i686.whl
-SimpleITK-0.11.0-cp35-cp35m-manylinux1_x86_64.whl
-```
-
-## Prerequisites
-
-Building wheels requires:
-* [CMake](https://cmake.org)
-* Git
-* C++ Compiler - Platform specific requirements are summarized in [scikit-build documentation](http://scikit-build.readthedocs.io).
-* Python
-
 ## Detailed build instructions
 
 ### Building SimpleITK Python wheels
 
 Build the SimpleITK Python wheel with the following command:
 
+To build only a wheel (not sdist):
+
+```bash
+python -m build --wheel
 ```
-python -m build .
-```
+
 ### Building Source Distribution
 
 The Python [build](https://pypa-build.readthedocs.io/en/latest/) package should be used to build the source distribution:
 
-```
-python -m build --sdist .
+```bash
+python -m build --sdist
 ```
 
-### Efficiently building wheels for different version of python
+### Configuration Options
 
-If on a given platform you would like to build wheels for different version of python, you can build the SimpleITK core libraries first and reuse them when building each wheel.
+You can pass configuration options to the build using `-C` or `--config-settings`:
+
+```bash
+# Enable verbose build output
+python -m build -C build.verbose=true
+
+# Set CMake build type
+python -m build -C cmake.build-type=Debug
+
+# Pass CMake defines
+python -m build -C cmake.define.SOME_OPTION=ON
+
+# Use a persistent build directory for faster rebuilds
+python -m build -C build-dir=build
+```
+
+For more configuration options, see the [scikit-build-core documentation](https://scikit-build-core.readthedocs.io/en/latest/configuration/index.html).
+
+### Efficiently building wheels for different versions of Python
+
+If on a given platform you would like to build wheels for different versions of Python, you can build the SimpleITK core libraries first and reuse them when building each wheel.
 
 Here are the steps:
 
-1. Build `SimpleITKPythonPackage` with `SimpleITKPythonPackage_BUILD_PYTHON` set to `OFF`
+1. Build `SimpleITKPythonPackage` with `SimpleITKPythonPackage_BUILD_PYTHON` set to `OFF`:
 
-2. Build "flavor" of package using:
+```bash
+python -m build -C build-dir=build -Ccmake.define.SimpleITKPythonPackage_BUILD_PYTHON=OFF
+```
+
+2. Build wheels for different Python versions by passing the pre-built paths via config settings:
+
+```bash
+python3.10 -m build --wheel -C cmake.define.SimpleITK_DIR=/path/to/build/sitk-sb/SimpleITK-build \
+  -C cmake.define.ITK_DIR=/path/to/build/sitk-sb/ITK-build
+
+python3.11 -m build --wheel -C cmake.define.SimpleITK_DIR=/path/to/build/sitk-sb/SimpleITK-build \
+  -C cmake.define.ITK_DIR=/path/to/build/sitk-sb/ITK-build
 
 ```
-python setup.py bdist_wheel -- \
-  -DSimpleITK_DIR:PATH=/path/to/SimpleITKPythonPackage-core-build/SimpleITK-superbuild/SimpleITK-build \
-  -DSWIG_EXECUTABLE:PATH=/path/to/SimpleITKPythonPackage-core-build/SimpleITK-superbuild/Swig/bin/swig
+
+### Development and Editable Installs
+
+For development, you can install SimpleITK in editable mode:
+
+```bash
+pip install -e . --no-build-isolation
+```
+
+For faster rebuilds during development, use a persistent build directory:
+
+```bash
+pip install -e . --no-build-isolation -C build-dir=build
+```
+
+For more information on editable installs, see the [scikit-build-core editable documentation](https://scikit-build-core.readthedocs.io/en/latest/configuration/index.html#editable-installs).
+
+## Build System
+
+This package uses [scikit-build-core](https://scikit-build-core.readthedocs.io/), a modern Python build backend that uses CMake. Key features include:
+
+- **Automatic dependency management**: CMake and Ninja are automatically provided if needed
+- **PEP 517/518 compliant**: Works with modern Python build tools
+- **Configurable**: Extensive configuration options via `pyproject.toml` or command-line
+- **Cross-platform**: Supports Windows, macOS, and Linux
+- **Fast rebuilds**: Optional persistent build directories for development
+
+### Available CMake Options
+
+The following CMake options can be set via config settings:
+
+- `SimpleITKPythonPackage_BUILD_PYTHON`: Build Python bindings (default: ON)
+- `SimpleITK_PYTHON_THREADS`: Enable threaded Python usage by unlocking the GIL (default: ON)
+- `SimpleITK_PYTHON_USE_LIMITED_API`: Use Python Limited API for minor version compatibility (default: ON for Python >= 3.11)
+- `SimpleITK_DIR`: Path to existing SimpleITK build directory (for reusing builds)
+- `USE_CCACHE`: Enable ccache for faster rebuilds (default: OFF)
+
+Example:
+
+```bash
+python -m build -C cmake.define.SimpleITK_PYTHON_THREADS=OFF \
+                -C cmake.define.USE_CCACHE=ON
 ```
 
 ## Miscellaneous
-Written by Jean-Christophe Fillion-Robin from Kitware Inc.
+Written by Jean-Christophe Fillion-Robin from Kitware Inc. and Bradley Lowekamp.
 
 It is covered by the Apache License, Version 2.0:
 

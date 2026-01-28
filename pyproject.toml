@@ -1,8 +1,57 @@
 [build-system]
 requires = [
-  "scikit-build>=0.17.6",
-  "wheel",
-  "cmake>=3.26.0",
-  "ninja; platform_system!='Windows'"
+  "scikit-build-core>=0.10",
+  "swig==4.4.0"
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "scikit_build_core.build"
+
+
+[project]
+name = "SimpleITK"
+version = "2.5.3"
+description = "SimpleITK is a simplified interface to the Insight Toolkit (ITK) for image registration and segmentation"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Insight Software Consortium", email = "insight-users@itk.org"}
+]
+keywords = ["SimpleITK", "ITK", "InsightToolkit", "segmentation", "registration"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: C++",
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Education",
+    "Intended Audience :: Healthcare Industry",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+    "Operating System :: MacOS"
+]
+
+[project.urls]
+Homepage = "http://simpleitk.org/"
+Documentation = "https://simpleitk.readthedocs.io/en/release/"
+"Bug Tracker" = "https://github.com/SimpleITK/SimpleITK/issues"
+"Source Code" = "https://github.com/SimpleITK/SimpleITK"
+
+[tool.scikit-build]
+minimum-version = "0.10"
+cmake.version = ">=3.26.0"
+wheel.packages = ["SimpleITK"]
+wheel.install-dir = "."
+sdist.include = [
+    "CMakeLists.txt",
+    "README.md",
+    "SimpleITK/**"
+]
+sdist.exclude = [
+    "SimpleITK/.ExternalData/**",
+    "**/.git*"
+]
