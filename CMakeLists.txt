@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.26)
 
 project(SimpleITKPythonPackage NONE)
 
-if(NOT DEFINED SimpleITKPythonPackage_SUPERBUILD)
-  set(SimpleITKPythonPackage_SUPERBUILD 1)
+if(DEFINED SimpleITKPythonPackage_SUPERBUILD)
+  message(FATAL_ERROR "The SimpleITKPythonPackage_SUPERBUILD is no longer supported. Please refer to the SuperBuild CMakeLists.txt file to build SimpleITK Python packages.") 
 endif()
 
 # Set a default build type if none was specified
@@ -21,258 +21,203 @@ if(NOT DEFINED SimpleITK_SOURCE_DIR)
   set(SimpleITK_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/SimpleITK")
 endif()
 
-if(SimpleITKPythonPackage_SUPERBUILD)
 
-  set(ep_common_cmake_cache_args)
-  if(NOT CMAKE_CONFIGURATION_TYPES)
-    list(APPEND ep_common_cmake_cache_args
-      -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-    )
-  endif()
-
-  #-----------------------------------------------------------------------------
-  # Options
-  option ( SimpleITK_PYTHON_THREADS "Enable threaded python usage by unlocking the GIL." ON )
-  mark_as_advanced( SimpleITK_PYTHON_THREADS )
-
-  #
-  # When building different "flavor" of SimpleITK python packages on a given platform,
-  # explicitly setting the following options allow to speed up package generation by
-  # re-using existing resources.
-  #
-  #  SimpleITK_SOURCE_DIR: Path to an existing source directory
-  #
-  #  SWIG_EXECUTABLE: Path to an existing executable
-  #
-  #  SimpleITK_DIR: Path to an existing SimpleITK build or install directory
-  #
-
-  option ( SimpleITKPythonPackage_BUILD_PYTHON "Build SimpleITK python module" ON )
-  mark_as_advanced( SimpleITKPythonPackage_BUILD_PYTHON )
-
-  # compile with multiple processors
-  include(ProcessorCount)
-  ProcessorCount(NPROC)
-  if (NOT NPROC EQUAL 0)
-    set( ENV{MAKEFLAGS} "-j${NPROC}" )
-  endif()
-
-  #-----------------------------------------------------------------------------
-  include(ExternalProject)
-
-  # Add an empty external project
-  function(sitk_ExternalProject_Add_Empty proj depends)
-    set(depends_args)
-    if(NOT depends STREQUAL "")
-      set(depends_args DEPENDS ${depends})
-    endif()
-    ExternalProject_add(${proj}
-      SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
-      DOWNLOAD_COMMAND ""
-      UPDATE_COMMAND ""
-      CONFIGURE_COMMAND ""
-      BUILD_COMMAND ""
-      BUILD_IN_SOURCE 1
-      BUILD_ALWAYS 1
-      INSTALL_COMMAND ""
-      ${depends_args}
-      )
-  endfunction()
+set(ep_common_cmake_cache_args)
+if(NOT CMAKE_CONFIGURATION_TYPES)
+  list(APPEND ep_common_cmake_cache_args
+    -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+  )
+endif()
 
 
-  #-----------------------------------------------------------------------------
-  # A separate project is used to download SimpleITK, so that the SuperBuild
-  # subdirectory can be use for SimpleITK's SuperBuild to build the
-  # required Lua, GTest etc.
+#-----------------------------------------------------------------------------
+# Options
+option ( SimpleITK_PYTHON_THREADS "Enable threaded python usage by unlocking the GIL." ON )
+mark_as_advanced( SimpleITK_PYTHON_THREADS )
 
-  # Sanity checks
-  if(DEFINED SimpleITK_SOURCE_DIR AND NOT EXISTS ${SimpleITK_SOURCE_DIR})
-    message(FATAL_ERROR "SimpleITK_SOURCE_DIR variable is defined but corresponds to nonexistent directory: \"${SimpleITK_SOURCE_DIR}\"")
-  endif()
+#
+# When building different "flavor" of SimpleITK python packages on a given platform,
+# explicitly setting the following options allow to speed up package generation by
+# re-using existing resources.
+#
+#  SimpleITK_SOURCE_DIR: Path to an existing source directory
+#
+#  SWIG_EXECUTABLE: Path to an existing executable
+#
+#  SimpleITK_DIR: Path to an existing SimpleITK build or install directory
+#
 
-  message(STATUS "SuperBuild -   SimpleITK_SOURCE_DIR: ${SimpleITK_SOURCE_DIR}")
+option ( SimpleITKPythonPackage_BUILD_PYTHON "Build SimpleITK python module" ON )
+mark_as_advanced( SimpleITKPythonPackage_BUILD_PYTHON )
 
-  #-----------------------------------------------------------------------------
-  # SimpleITK "Core" libraries: This is the SimpleITK Superbuild project
-  # that build all the tools needed (GTest, PCRE, Swig, Lua & GTest) and
-  # then SimpleITK "core" libraries.
+# compile with multiple processors
+include(ProcessorCount)
+ProcessorCount(NPROC)
+if (NOT NPROC EQUAL 0)
+  set( ENV{MAKEFLAGS} "-j${NPROC}" )
+endif()
 
-  message(STATUS "SuperBuild - SimpleITK-superbuild")
+# Find SWIG executable - should be provided by the build environment
+find_package ( SWIG )
+if ( NOT SWIG_FOUND )
+  message(FATAL_ERROR "SWIG executable not found. Please set SWIG_EXECUTABLE variable to point to a valid SWIG executable.")
+endif()
+message(STATUS "SuperBuild -   Found SWIG_EXECUTABLE: ${SWIG_EXECUTABLE}")
+message(STATUS "SuperBuild -   SWIG_VERSION: ${SWIG_VERSION}")
 
-  # Sanity checks
-  if(DEFINED SimpleITK_DIR AND NOT EXISTS ${SimpleITK_DIR})
-    message(FATAL_ERROR "SimpleITK_DIR variable is defined but corresponds to nonexistent directory")
-  endif()
-  if(DEFINED SWIG_EXECUTABLE AND NOT EXISTS ${SWIG_EXECUTABLE})
-    message(FATAL_ERROR "SWIG_EXECUTABLE variable is defined but corresponds to nonexistent file")
-  endif()
+#-----------------------------------------------------------------------------
+include(ExternalProject)
 
-  if(NOT DEFINED SimpleITK_DIR AND NOT DEFINED SWIG_EXECUTABLE)
+#-----------------------------------------------------------------------------
 
-    set(SimpleITK_SUPERBUILD_DIR ${CMAKE_BINARY_DIR}/sitk-sb)
+# Sanity checks
+if(DEFINED SimpleITK_SOURCE_DIR AND NOT EXISTS ${SimpleITK_SOURCE_DIR})
+  message(FATAL_ERROR "SimpleITK_SOURCE_DIR variable is defined but corresponds to nonexistent directory: \"${SimpleITK_SOURCE_DIR}\"")
+endif()
 
-    ExternalProject_add(SimpleITK-superbuild
-      SOURCE_DIR ${SimpleITK_SOURCE_DIR}/SuperBuild
-      BINARY_DIR ${SimpleITK_SUPERBUILD_DIR}
-      DOWNLOAD_COMMAND ""
-      UPDATE_COMMAND ""
-      CMAKE_CACHE_ARGS
-        ${ep_common_cmake_cache_args}
-        -DBUILD_EXAMPLES:BOOL=OFF
-        -DBUILD_TESTING:BOOL=OFF
-        -DBUILD_DOXYGEN:BOOL=OFF
-        -DWRAP_DEFAULT:BOOL=OFF
-        -DSimpleITK_INSTALL_DOC_DIR:STRING=SimpleITK
-        -DSimpleITK_BUILD_STRIP:BOOL=ON
-        -DSimpleITK_BUILD_DISTRIBUTE:BOOL=ON
-        -DSimpleITK_GIT_PROTOCOL:STRING=https
-        -DSKBUILD:BOOL=${SKBUILD}
-      USES_TERMINAL_CONFIGURE 1
-      USES_TERMINAL_BUILD 1
-      INSTALL_COMMAND ""
-      )
+message(STATUS "SuperBuild -   SimpleITK_SOURCE_DIR: ${SimpleITK_SOURCE_DIR}")
 
-    set(SimpleITK_DIR ${SimpleITK_SUPERBUILD_DIR}/SimpleITK-build)
-    set(ITK_DIR  ${SimpleITK_SUPERBUILD_DIR}/ITK-prefix/lib/cmake/ITK)
-    if(WIN32)
-      set(SWIG_EXECUTABLE ${SimpleITK_SUPERBUILD_DIR}/swigwin/swig.exe)
-    else()
-      set(SWIG_EXECUTABLE ${SimpleITK_SUPERBUILD_DIR}/Swig/bin/swig)
-    endif()
-  else()
+#-----------------------------------------------------------------------------
+# SimpleITK "Core" libraries: This is the SimpleITK Superbuild project
+# that build all the tools needed (GTest, PCRE, Swig, Lua & GTest) and
+# then SimpleITK "core" libraries.
 
-    sitk_ExternalProject_Add_Empty(
-      SimpleITK-superbuild
-      )
+message(STATUS "SuperBuild - SimpleITK-superbuild")
 
-  endif()
+# Sanity checks
+if(DEFINED SimpleITK_DIR AND NOT EXISTS ${SimpleITK_DIR})
+  message(FATAL_ERROR "SimpleITK_DIR variable is defined but corresponds to nonexistent directory")
+endif()
+if(DEFINED SWIG_EXECUTABLE AND NOT EXISTS ${SWIG_EXECUTABLE})
+  message(FATAL_ERROR "SWIG_EXECUTABLE variable is defined but corresponds to nonexistent file")
+endif()
 
-  message(STATUS "SuperBuild -   SimpleITK_DIR: ${SimpleITK_DIR}")
-  message(STATUS "SuperBuild -   ITK_DIR: ${ITK_DIR}")
-  message(STATUS "SuperBuild -   SWIG_EXECUTABLE: ${SWIG_EXECUTABLE}")
+set( SimpleITK-python-deps "" )
 
+if(NOT DEFINED SimpleITK_DIR)
 
-  #-----------------------------------------------------------------------------
-  if(NOT SimpleITKPythonPackage_BUILD_PYTHON)
-    return()
-  endif()
+  set(SimpleITK_SUPERBUILD_DIR ${CMAKE_BINARY_DIR}/sitk-sb)
 
-
-  #-----------------------------------------------------------------------------
-  # Search for python interpreter and libraries
-
-  message(STATUS "SuperBuild - Searching for python")
-
-  if ( PYTHON_VERSION_STRING VERSION_GREATER_EQUAL "3.11.0")
-
-    set(_SimpleITK_PYTHON_USE_LIMITED_API_DEFAULT ON)
-  else ()
-    set(_SimpleITK_PYTHON_USE_LIMITED_API_DEFAULT OFF)
-  endif()
-  option( SimpleITK_PYTHON_USE_LIMITED_API "Use Python limited API, for minor version compatibility." ${_SimpleITK_PYTHON_USE_LIMITED_API_DEFAULT} )
-
-  # Sanity checks
-  if(DEFINED PYTHON_INCLUDE_DIR AND NOT EXISTS ${PYTHON_INCLUDE_DIR})
-    message(FATAL_ERROR "PYTHON_INCLUDE_DIR variable is defined but corresponds to nonexistent directory")
-  endif()
-  if(DEFINED PYTHON_LIBRARY AND NOT EXISTS ${PYTHON_LIBRARY})
-    message(FATAL_ERROR "PYTHON_LIBRARY variable is defined but corresponds to nonexistent file")
-  endif()
-  if(DEFINED PYTHON_EXECUTABLE AND NOT EXISTS ${PYTHON_EXECUTABLE})
-    message(FATAL_ERROR "PYTHON_EXECUTABLE variable is defined but corresponds to nonexistent file")
-  endif()
-
-  if(NOT DEFINED PYTHON_INCLUDE_DIR
-     OR NOT DEFINED PYTHON_LIBRARY
-     OR NOT DEFINED PYTHON_EXECUTABLE)
-
-    find_package ( PythonLibs REQUIRED )
-    find_package ( PythonInterp REQUIRED )
-
-  endif()
-
-  message(STATUS "SuperBuild -   PYTHON_INCLUDE_DIR: ${PYTHON_INCLUDE_DIR}")
-  message(STATUS "SuperBuild -   PYTHON_LIBRARY: ${PYTHON_LIBRARY}")
-  message(STATUS "SuperBuild -   PYTHON_EXECUTABLE: ${PYTHON_EXECUTABLE}")
-
-
-  #-----------------------------------------------------------------------------
-  # SimpleITK Python module: This project build only the SimpleITK python
-  # module.
-
-  message(STATUS "SuperBuild - SimpleITK-python => Requires SimpleITK-superbuild")
-
-  set(SimpleITK_PYTHON_DIR "${CMAKE_BINARY_DIR}/SimpleITK-python")
-
-  ExternalProject_add(SimpleITK-python
-    SOURCE_DIR ${SimpleITK_SOURCE_DIR}/Wrapping/Python
-    BINARY_DIR ${SimpleITK_PYTHON_DIR}
+  ExternalProject_add(SimpleITK-superbuild
+    SOURCE_DIR ${SimpleITK_SOURCE_DIR}/SuperBuild
+    BINARY_DIR ${SimpleITK_SUPERBUILD_DIR}
     DOWNLOAD_COMMAND ""
     UPDATE_COMMAND ""
     CMAKE_CACHE_ARGS
       ${ep_common_cmake_cache_args}
-      -DPython_INCLUDE_DIR:PATH=${PYTHON_INCLUDE_DIR}
-      -DPython_LIBRARY:PATH=${PYTHON_LIBRARY}
-      -DPython_EXECUTABLE:PATH=${PYTHON_EXECUTABLE}
+      -DBUILD_EXAMPLES:BOOL=OFF
       -DBUILD_TESTING:BOOL=OFF
-      -DSimpleITK_PYTHON_THREADS:BOOL=${SimpleITK_PYTHON_THREADS}
-      -DSimpleITK_PYTHON_USE_LIMITED_API:BOOL=${SimpleITK_PYTHON_USE_LIMITED_API}
-      -DSimpleITK_DIR:PATH=${SimpleITK_DIR}
-      -DITK_DIR:PATH=${ITK_DIR}
-      -DSWIG_EXECUTABLE:PATH=${SWIG_EXECUTABLE}
+      -DBUILD_DOXYGEN:BOOL=OFF
+      -DWRAP_DEFAULT:BOOL=OFF
+      -DITK_USE_BUILD_DIR:BOOL=ON
+      -DSimpleITK_INSTALL_DOC_DIR:STRING=SimpleITK
       -DSimpleITK_BUILD_STRIP:BOOL=ON
-      -DSKBUILD:BOOL=ON
+      -DSimpleITK_BUILD_DISTRIBUTE:BOOL=ON
+      -DSimpleITK_GIT_PROTOCOL:STRING=https
+      -DSimpleITK_USE_SYSTEM_SWIG:BOOL=ON
+      -DSWIG_EXECUTABLE:PATH=${SWIG_EXECUTABLE}
+      -DSKBUILD:BOOL=${SKBUILD}
+      -DUSE_CCACHE:BOOL=${USE_CCACHE}
     USES_TERMINAL_CONFIGURE 1
     USES_TERMINAL_BUILD 1
     INSTALL_COMMAND ""
-    DEPENDS SimpleITK-superbuild
     )
 
-  message(STATUS "SuperBuild -   SimpleITK_PYTHON_DIR: ${SimpleITK_PYTHON_DIR}")
+  set(SimpleITK_DIR ${SimpleITK_SUPERBUILD_DIR}/SimpleITK-build)
+  set(ITK_DIR  ${SimpleITK_SUPERBUILD_DIR}/ITK-build)
+  list(APPEND SimpleITK-python-deps SimpleITK-superbuild)
+
+endif()
+
+message(STATUS "SuperBuild -   SimpleITK_DIR: ${SimpleITK_DIR}")
+message(STATUS "SuperBuild -   ITK_DIR: ${ITK_DIR}")
+message(STATUS "SuperBuild -   SWIG_EXECUTABLE: ${SWIG_EXECUTABLE}")
 
 
-  #-----------------------------------------------------------------------------
-  # SimpleITKPythonPackage: This project adds install rules for the "Runtime" component
-  # of both SimpleITK code and python libraries.
+#-----------------------------------------------------------------------------
+if(NOT SimpleITKPythonPackage_BUILD_PYTHON)
+  return()
+endif()
 
-  message(STATUS "SuperBuild - ${PROJECT_NAME} => Requires SimpleITK-python")
 
-  ExternalProject_add(${PROJECT_NAME}
-    SOURCE_DIR ${CMAKE_SOURCE_DIR}
-    BINARY_DIR ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-build
-    DOWNLOAD_COMMAND ""
-    UPDATE_COMMAND ""
-    CMAKE_CACHE_ARGS
-      ${ep_common_cmake_cache_args}
-      -DSimpleITKPythonPackage_SUPERBUILD:BOOL=0
-      -DSimpleITK_DIR:PATH=${SimpleITK_DIR}
-      -DSimpleITK_PYTHON_DIR:PATH=${SimpleITK_PYTHON_DIR}
-      -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
-    USES_TERMINAL_CONFIGURE 1
-    INSTALL_COMMAND ""
-    DEPENDS SimpleITK-python
-    )
+#-----------------------------------------------------------------------------
+# Search for python interpreter and libraries
 
-  install(SCRIPT ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-build/cmake_install.cmake)
+message(STATUS "SuperBuild - Searching for python")
 
-else()
+if ( PYTHON_VERSION_STRING VERSION_GREATER_EQUAL "3.11.0")
 
-  #-----------------------------------------------------------------------------
-  # Install SimpleITK Core "Runtime" components
-  install(CODE "
-unset(CMAKE_INSTALL_COMPONENT)
-set(COMPONENT \"Runtime\")
-include\(\"${SimpleITK_DIR}/cmake_install.cmake\")
-unset(CMAKE_INSTALL_COMPONENT)
-")
+  set(_SimpleITK_PYTHON_USE_LIMITED_API_DEFAULT ON)
+else ()
+  set(_SimpleITK_PYTHON_USE_LIMITED_API_DEFAULT OFF)
+endif()
+option( SimpleITK_PYTHON_USE_LIMITED_API "Use Python limited API, for minor version compatibility." ${_SimpleITK_PYTHON_USE_LIMITED_API_DEFAULT} )
 
-  # Install SimpleITK Python "Runtime" components
-  install(CODE "
+# Sanity checks
+if(DEFINED Python_INCLUDE_DIR AND NOT EXISTS ${Python_INCLUDE_DIR})
+  message(FATAL_ERROR "Python_INCLUDE_DIR variable is defined but corresponds to nonexistent directory")
+endif()
+if(DEFINED Python_LIBRARY AND NOT EXISTS ${Python_LIBRARY})
+  message(FATAL_ERROR "Python_LIBRARY variable is defined but corresponds to nonexistent file")
+endif()
+if(DEFINED Python_EXECUTABLE AND NOT EXISTS ${Python_EXECUTABLE})
+  message(FATAL_ERROR "Python_EXECUTABLE variable is defined but corresponds to nonexistent file")
+endif()
+
+if(NOT DEFINED Python_INCLUDE_DIR
+    OR NOT DEFINED Python_LIBRARY
+    OR NOT DEFINED Python_EXECUTABLE)
+
+  find_package( Python COMPONENTS Interpreter Development REQUIRED )
+
+endif()
+
+message(STATUS "SuperBuild -   Python_INCLUDE_DIR: ${Python_INCLUDE_DIR}")
+message(STATUS "SuperBuild -   Python_LIBRARY: ${Python_LIBRARY}")
+message(STATUS "SuperBuild -   Python_EXECUTABLE: ${Python_EXECUTABLE}")
+
+
+#-----------------------------------------------------------------------------
+# SimpleITK Python module: This project build only the SimpleITK python
+# module.
+
+message(STATUS "SuperBuild - SimpleITK-python => Requires ${SimpleITK-python-deps}")
+message(STATUS "SuperBuild -   INSTALL_DIR: ${SKBUILD_SCRIPTS_DIR}")
+set(SimpleITK_PYTHON_DIR "${CMAKE_BINARY_DIR}/SimpleITK-python")
+
+ExternalProject_add(SimpleITK-python
+  SOURCE_DIR ${SimpleITK_SOURCE_DIR}/Wrapping/Python
+  BINARY_DIR ${SimpleITK_PYTHON_DIR}
+  DOWNLOAD_COMMAND ""
+  UPDATE_COMMAND ""
+  INSTALL_COMMAND ""
+  CMAKE_CACHE_ARGS
+    ${ep_common_cmake_cache_args}
+    -DPython_INCLUDE_DIR:PATH=${Python_INCLUDE_DIR}
+    -DPython_LIBRARY:PATH=${Python_LIBRARY}
+    -DPython_EXECUTABLE:PATH=${Python_EXECUTABLE}
+    -DBUILD_TESTING:BOOL=OFF
+    -DSimpleITK_PYTHON_THREADS:BOOL=${SimpleITK_PYTHON_THREADS}
+    -DSimpleITK_PYTHON_USE_LIMITED_API:BOOL=${SimpleITK_PYTHON_USE_LIMITED_API}
+    -DSimpleITK_DIR:PATH=${SimpleITK_DIR}
+    -DITK_DIR:PATH=${ITK_DIR}
+    -DSWIG_EXECUTABLE:PATH=${SWIG_EXECUTABLE}
+    -DSimpleITK_BUILD_STRIP:BOOL=ON
+    -DSKBUILD:BOOL=ON
+    -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
+  USES_TERMINAL_CONFIGURE 1
+  USES_TERMINAL_BUILD 1
+
+  DEPENDS "${SimpleITK-python-deps}"
+  )
+
+
+#-----------------------------------------------------------------------------
+# Install SimpleITK Python "Runtime" components
+install(CODE "
 unset(CMAKE_INSTALL_COMPONENT)
 set(COMPONENT \"Runtime\")
 include\(\"${SimpleITK_PYTHON_DIR}/cmake_install.cmake\")
 unset(CMAKE_INSTALL_COMPONENT)
 ")
-
-endif()
 
